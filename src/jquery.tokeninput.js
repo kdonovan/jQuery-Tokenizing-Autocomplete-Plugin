@@ -23,7 +23,8 @@ $.fn.tokenInput = function (url, options) {
         method: "GET",
         contentType: "json",
         queryParam: "q",
-        onResult: null
+        onResult: null,
+        buildListItemFromResults: function (result, query, results) { return "<li>"+result.name+"</li>"; },
     }, options);
 
     settings.classes = $.extend({
@@ -471,8 +472,10 @@ $.TokenList = function (input, settings) {
 
             for(var i in results) {
                 if (results.hasOwnProperty(i)) {
-                    var this_li = $("<li>"+highlight_term(results[i].name, query)+"</li>")
-                                      .appendTo(dropdown_ul);
+                    var this_li = $(highlight_term(
+                                      settings.buildListItemFromResults(results[i], query, results), 
+                                      query
+                                   )).appendTo(dropdown_ul);
 
                     if(i%2) {
                         this_li.addClass(settings.classes.dropdownItem);
