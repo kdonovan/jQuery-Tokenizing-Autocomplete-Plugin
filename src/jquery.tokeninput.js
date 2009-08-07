@@ -24,9 +24,15 @@ $.fn.tokenInput = function (url, options) {
         contentType: "json",
         queryParam: "q",
         onResult: null,
-        buildListItemFromResults: function (result, query, results) { return "<li>"+result.name+"</li>"; },
+        buildListItemFromResults: null,
+        highlightTerms: true,
     }, options);
-
+    
+    // The default behavior depends on the value of highlightTerms
+    if (!settings.buildListItemFromResults)
+      settings.buildListItemFromResults = settings.highlightTerms ? function (result, query, results) { return "<li>"+ result.highlighted_name +"</li>"; } :
+                                                                    function (result, query, results) { return "<li>"+ result.name +"</li>"; }
+    
     settings.classes = $.extend({
         tokenList: "token-input-list",
         token: "token-input-token",
@@ -472,10 +478,15 @@ $.TokenList = function (input, settings) {
 
             for(var i in results) {
                 if (results.hasOwnProperty(i)) {
-                    var this_li = $(highlight_term(
-                                      settings.buildListItemFromResults(results[i], query, results), 
-                                      query
-                                   )).appendTo(dropdown_ul);
+
+                    if (settings.highlightTerms) { // if highlight terms, store a highlighted version of every attrib as results[i].highlighted_attrib
+                      for (var itemAttrib in results[i]) {
+                        if (typeof(results[i][itemAttrib]) == 'string')
+                        results[i]['highlighted_'+itemAttrib] = highlight_term(results[i][itemAttrib], query);
+                      }
+                    }
+                    
+                    var this_li = $(settings.buildListItemFromResults(results[i], query, results)).appendTo(dropdown_ul);
 
                     if(i%2) {
                         this_li.addClass(settings.classes.dropdownItem);
